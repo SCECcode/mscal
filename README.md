@@ -1,3 +1,10 @@
+> [!CAUTION]
+> **THIS REPOSITORY IS FOR NetCDF VERSION**
+>
+> Active development on MUSCAL model has transition to the TileDB version.
+>
+> Please **do not submit new pull requests or issues** to this legacy repository. Any changes pushed here will not be maintained or integrated into future releases.
+
 # The Multi-scale Statewide CALifornia Velocity Model (muscal)
 
 <a href="https://github.com/sceccode/muscal.git"><img src="https://github.com/sceccode/muscal/wiki/images/muscal_logo.png"></a>
