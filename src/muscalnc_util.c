@@ -1,9 +1,9 @@
 /*
- * muscal_util.c
+ * muscalnc_util.c
  * nc=netcdf
 */
 
-#include "muscal_util.h"
+#include "muscalnc_util.h"
 
 /* open a binary file and extract total number of data out of it  */
 float *get_binary_float_buffer(const char *datadir, char *datafile, int total) {

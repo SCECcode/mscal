@@ -5,9 +5,9 @@
 #-113.7169 34.2508 1000
 
 ## cross section.. weird curve up
-# muscal  vs3569.715  vp6163.185 rho274.711
+# muscalnc  vs3569.715  vp6163.185 rho274.711
 -114.2121 35.35 3000
-# muscal 0
+# muscalnc 0
 -113.282 35.35 3000
 
 ## inside vp=2037.713, vs=751.1057, rho=1936.936

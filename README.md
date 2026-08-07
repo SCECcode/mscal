@@ -1,27 +1,27 @@
 > [!CAUTION]
 > **THIS REPOSITORY IS FOR NetCDF VERSION**
 >
-> Active development on MUSCAL model has transition to the TileDB version.
+> Active development on MUSCALNC model has transition to the TileDB version.
 >
 > Please **do not submit new pull requests or issues** to this legacy repository. Any changes pushed here will not be maintained or integrated into future releases.
 
-# The Multi-scale Statewide CALifornia Velocity Model (muscal)
+# The Multi-scale Statewide CALifornia Velocity Model (muscalnc)
 
-<a href="https://github.com/sceccode/muscal.git"><img src="https://github.com/sceccode/muscal/wiki/images/muscal_logo.png"></a>
+<a href="https://github.com/sceccode/muscalnc.git"><img src="https://github.com/sceccode/muscalnc/wiki/images/muscalnc_logo.png"></a>
 
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
-![GitHub repo size](https://img.shields.io/github/repo-size/sceccode/muscal)
-[![muscal-ucvm-ci Actions Status](https://github.com/SCECcode/muscal/workflows/muscal-ucvm-ci/badge.svg)](https://github.com/SCECcode/muscal/actions)
+![GitHub repo size](https://img.shields.io/github/repo-size/sceccode/muscalnc)
+[![muscalnc-ucvm-ci Actions Status](https://github.com/SCECcode/muscalnc/workflows/muscalnc-ucvm-ci/badge.svg)](https://github.com/SCECcode/muscalnc/actions)
 
-The Multi-Scale CALifornia (MUSCAL) statewide Vp and Vs velocity models provide 
+The Multi-Scale CALifornia (MUSCALNC) statewide Vp and Vs velocity models provide 
 high-quality integrated description of seismic structures across the state. 
-Starting with the CANVAS base model (Doody et al., 2023), MUSCAL incorporates 
+Starting with the CANVAS base model (Doody et al., 2023), MUSCALNC incorporates 
 multiple regional and local velocity datasets into a unified structure, capturing 
 features ranging from broad crustal-mantle structures to fine-scale local 
 anomalies such as sedimentary basins.
  
 To ensure quality, the merged multi-scale models underwent a data-informed refinement
-process guided by simulations of small validation events. A key feature of MUSCAL is 
+process guided by simulations of small validation events. A key feature of MUSCALNC is 
 the inclusion of a locally optimized near-surface low-velocity taper (LVT), specifically 
 designed to better represent under-resolved shallow structures and improve the accuracy 
 of ground-motion predictions.
@@ -37,7 +37,7 @@ If you would like to contact the authors regarding this software,
 please e-mail software@scec.org. Note this e-mail address should
 be used for questions regarding the software itself (e.g. how
 do I link the library properly?). Questions regarding the model's
-science (e.g. on what paper is the MUSCAL based?) should be directed
+science (e.g. on what paper is the MUSCALNC based?) should be directed
 to the model's authors, located in the AUTHORS file.
 
 ## To build in standalone mode
@@ -65,7 +65,7 @@ example:
 Optional 1d background base on model's surface/boundary datapoints 
 
 Preprocessing : 
-   Extract all surface points from the MUSCAL file layer by layer and create binary surface_945765.in 
+   Extract all surface points from the MUSCALNC file layer by layer and create binary surface_945765.in 
 
 Model initialization :
    Load surface points and create KDtree of surface points with 3 axis (lon/lat/depth) 
@@ -73,9 +73,9 @@ Model initialization :
 Query access
    Fill in background with nearest neighboring surface point from surface KDtree 
 
-### muscal_query
+### muscalnc_query
 
-### muscal_surface
+### muscalnc_surface
 
 ### query_kdtree
 

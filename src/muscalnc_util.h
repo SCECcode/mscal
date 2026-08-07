@@ -1,10 +1,10 @@
 /**
- * @file muscal_util.h
+ * @file muscalnc_util.h
  *
 **/
 
-#ifndef MUSCAL_UTIL_H
-#define MUSCAL_UTIL_H
+#ifndef MUSCALNC_UTIL_H
+#define MUSCALNC_UTIL_H
 
 #include <stdlib.h>
 #include <stdio.h>

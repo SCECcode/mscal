@@ -1,13 +1,13 @@
 # Autoconf/automake file
 
-objects = um_netcdf.o muscal_dataset.o muscal_util.o cJSON.o kdtree_util.o
+objects = um_netcdf.o muscalnc_dataset.o muscalnc_util.o cJSON.o kdtree_util.o
 
 # General compiler/linker flags
 AM_CFLAGS = ${CFLAGS} ${CPPFLAGS} -I$(prefix)/include
 AM_LDFLAGS = ${LDFLAGS} -L$(prefix)/lib ${LIBS} -lm
 
 
-TARGETS = muscal_surface muscal_query libmuscal.a libmuscal.so build_kdtree query_kdtree
+TARGETS = muscalnc_surface muscalnc_query libmuscalnc.a libmuscalnc.so build_kdtree query_kdtree
 
 all: $(TARGETS)
 
@@ -15,40 +15,41 @@ install:
 	mkdir -p ${prefix}
 	mkdir -p ${prefix}/lib
 	mkdir -p ${prefix}/include
-	cp libmuscal.so ${prefix}/lib
-	cp libmuscal.a ${prefix}/lib
-	cp muscal.h ${prefix}/include
-	cp muscal_query ${prefix}/bin
+	mkdir -p ${prefix}/bin
+	cp libmuscalnc.so ${prefix}/lib
+	cp libmuscalnc.a ${prefix}/lib
+	cp muscalnc.h ${prefix}/include
+	cp muscalnc_query ${prefix}/bin
 
 clean:
 	rm -rf $(TARGETS)
 	rm -rf *.o
 
-libmuscal.a: muscal_static.o muscal_dataset.o muscal_util.o um_netcdf.o cJSON.o kdtree_util.o
+libmuscalnc.a: muscalnc_static.o muscalnc_dataset.o muscalnc_util.o um_netcdf.o cJSON.o kdtree_util.o
 	$(AR) rcs $@ $^
 
-libmuscal.so: muscal.o muscal_dataset.o muscal_util.o  um_netcdf.o cJSON.o kdtree_util.o
-	$(CC) -shared $(AM_FCFLAGS) -o libmuscal.so $^ $(AM_LDFLAGS)
+libmuscalnc.so: muscalnc.o muscalnc_dataset.o muscalnc_util.o  um_netcdf.o cJSON.o kdtree_util.o
+	$(CC) -shared $(AM_FCFLAGS) -o libmuscalnc.so $^ $(AM_LDFLAGS)
 
-muscal.o: muscal.c
+muscalnc.o: muscalnc.c
 	$(CC) -fPIC -DDYNAMIC_LIBRARY -o $@ -c $^ $(AM_CFLAGS)
 
-muscal_static.o: muscal.c
+muscalnc_static.o: muscalnc.c
 	$(CC) -o $@ -c $^ $(AM_CFLAGS)
 
 $(objects): %.o: %.c
 	$(CC) -fPIC -DDYNAMIC_LIBRARY $(AM_CFLAGS) -o $@ -c $^
 
-muscal_query.o: muscal_query.c
+muscalnc_query.o: muscalnc_query.c
 	$(CC) $(AM_CFLAGS) -o $@ -c $^
 
-muscal_query : muscal_query.o libmuscal.a
+muscalnc_query : muscalnc_query.o libmuscalnc.a
 	$(CC) -o $@ $^ $(AM_LDFLAGS)
 
-muscal_surface.o: muscal_surface.c
+muscalnc_surface.o: muscalnc_surface.c
 	$(CC) $(AM_CFLAGS) -o $@ -c $^
 
-muscal_surface : muscal_surface.o libmuscal.a
+muscalnc_surface : muscalnc_surface.o libmuscalnc.a
 	$(CC) -o $@ $^ $(AM_LDFLAGS)
 
 build_kdtree.o: build_kdtree.c

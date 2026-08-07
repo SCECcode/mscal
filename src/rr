@@ -1,13 +1,13 @@
 
-ucvm_query -m muscal -f $UCVM_INSTALL_PATH/conf/ucvm.conf <in
+ucvm_query -m muscalnc -f $UCVM_INSTALL_PATH/conf/ucvm.conf <in
 
 #./build_kdtree 4441 surface_4441.in surface_4441.bin
 #more query_debug.log
 
-#./muscal_query < in
+#./muscalnc_query < in
 
-#./muscal_surface -i iin
-#./muscal_surface 
+#./muscalnc_surface -i iin
+#./muscalnc_surface 
 
 #./query_kdtree 4441 surface_4441.in in
 #more query_debug.log

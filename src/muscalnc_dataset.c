@@ -1,15 +1,15 @@
 /**
-         muscal_util.c
+         muscalnc_util.c
 **/
 
 #include <string.h>
 
 #include "ucvm_model_dtypes.h"
-#include "muscal.h"
+#include "muscalnc.h"
 #include "um_netcdf.h"
 
-#include "muscal_dataset.h"
-#include "muscal_util.h"
+#include "muscalnc_dataset.h"
+#include "muscalnc_util.h"
 
 
 
@@ -22,7 +22,7 @@ int free_kdnodesetup(KDNodeSetup *sptr) {
   return SUCCESS;
 }
 
-void add_surface_data(muscal_dataset_t  *data, char  *filepath, int sz) {
+void add_surface_data(muscalnc_dataset_t  *data, char  *filepath, int sz) {
 
   double lat, lon, depth, vs, vp, density;
   char line[KD_MAX_LINE];
@@ -54,16 +54,16 @@ void add_surface_data(muscal_dataset_t  *data, char  *filepath, int sz) {
   data->kdsurface=kdsurface;
 }
 
-/**** for muscal_dataset_t ****/
-muscal_dataset_t *make_a_muscal_dataset(char *datadir, char *datafile, int tooBig, int useBinary) {
+/**** for muscalnc_dataset_t ****/
+muscalnc_dataset_t *make_a_muscalnc_dataset(char *datadir, char *datafile, int tooBig, int useBinary) {
     char filepath[256];
     size_t nelems= 0;
     nc_type vtype;
 
-    muscal_dataset_t *data=(muscal_dataset_t *)malloc(sizeof(muscal_dataset_t));
+    muscalnc_dataset_t *data=(muscalnc_dataset_t *)malloc(sizeof(muscalnc_dataset_t));
 
     sprintf(filepath, "%s/%s", datadir, datafile);
-    if(muscal_ucvm_debug) fprintf(stderrfp," data file ..%s\n", filepath);
+    if(muscalnc_ucvm_debug) fprintf(stderrfp," data file ..%s\n", filepath);
 
 /* setup ncid */
     data->ncid=open_nc(filepath);
@@ -71,7 +71,7 @@ muscal_dataset_t *make_a_muscal_dataset(char *datadir, char *datafile, int tooBi
 /* setup nx/ny/nz and void ptrs */
     data->longitudes=(float *) get_nc_float_buffer(data->ncid, "longitude", filepath, &vtype, &nelems, 1);
     data->nx=nelems;
-    if(muscal_ucvm_debug_detail) {
+    if(muscalnc_ucvm_debug_detail) {
         fprintf(stderrfp, "  Longitudes: %d\n", nelems);
         for(int i=0;i<nelems; i++) {
             fprintf(stderrfp, "%d  %f\n", i, data->longitudes[i]);
@@ -80,7 +80,7 @@ muscal_dataset_t *make_a_muscal_dataset(char *datadir, char *datafile, int tooBi
 
     data->latitudes=(float *) get_nc_float_buffer(data->ncid, "latitude", filepath, &vtype, &nelems, 1);
     data->ny=nelems;
-    if(muscal_ucvm_debug_detail) {
+    if(muscalnc_ucvm_debug_detail) {
         fprintf(stderrfp, "  Latitude: %d\n", nelems);
         for(int i=0;i<nelems; i++) {
             fprintf(stderrfp, "%d  %f\n", i, data->latitudes[i]);
@@ -89,7 +89,7 @@ muscal_dataset_t *make_a_muscal_dataset(char *datadir, char *datafile, int tooBi
 
     data->depths=(float *) get_nc_float_buffer(data->ncid, "depth", filepath, &vtype, &nelems, 1);
     data->nz=nelems;
-    if(muscal_ucvm_debug_detail) {
+    if(muscalnc_ucvm_debug_detail) {
         fprintf(stderrfp, "  Depths: %d\n", nelems);
         for(int i=0;i<nelems; i++) {
             fprintf(stderrfp, "%d  %f\n", i, data->depths[i]);
@@ -111,12 +111,12 @@ muscal_dataset_t *make_a_muscal_dataset(char *datadir, char *datafile, int tooBi
         int total= data->nx * data->ny * data->nz;
 
 	if(!useBinary) {
-            if(muscal_ucvm_debug) { fprintf(stderrfp, " import USING netcdf data files\n"); }
+            if(muscalnc_ucvm_debug) { fprintf(stderrfp, " import USING netcdf data files\n"); }
             data->vp_buffer=get_nc_float_buffer(data->ncid, "vp", filepath, &vtype, &nelems, 3);
             data->vs_buffer=get_nc_float_buffer(data->ncid, "vs", filepath, &vtype, &nelems, 3);
             data->rho_buffer=get_nc_float_buffer(data->ncid, "rho", filepath, &vtype, &nelems, 3);
 	    } else {
-                if(muscal_ucvm_debug) { fprintf(stderrfp, " import USING binary data files\n"); }
+                if(muscalnc_ucvm_debug) { fprintf(stderrfp, " import USING binary data files\n"); }
                 data->vp_buffer = get_binary_float_buffer(datadir, "vp.dat", total);
                 data->vs_buffer = get_binary_float_buffer(datadir, "vs.dat", total);
                 data->rho_buffer = get_binary_float_buffer(datadir, "rho.dat", total);
@@ -135,7 +135,7 @@ muscal_dataset_t *make_a_muscal_dataset(char *datadir, char *datafile, int tooBi
 
 
 
-int free_muscal_dataset(muscal_dataset_t *data) {
+int free_muscalnc_dataset(muscalnc_dataset_t *data) {
     free(data->depths);
     free(data->latitudes);
     free(data->longitudes);
@@ -161,18 +161,18 @@ int free_muscal_dataset(muscal_dataset_t *data) {
 }
 
 /**** straight or trilinear/bilinear ****/
-int _buffer_offset(muscal_dataset_t * dataset, int x_idx, int  y_idx, int z_idx) {
+int _buffer_offset(muscalnc_dataset_t * dataset, int x_idx, int  y_idx, int z_idx) {
     int nx=dataset->nx;
     int ny=dataset->ny;
     int nz=dataset->nz;
 
     int offset= (z_idx)*(ny * nx)+(y_idx)*(nx)+x_idx;
-    if(muscal_ucvm_debug) { fprintf(stderrfp,"\nTarget offset %d : idx lon/lat/dep = %d/%d/%d\n", offset,x_idx, y_idx, z_idx); }
+    if(muscalnc_ucvm_debug) { fprintf(stderrfp,"\nTarget offset %d : idx lon/lat/dep = %d/%d/%d\n", offset,x_idx, y_idx, z_idx); }
 
     return offset;
 }
 
-int get_one_property(muscal_dataset_t *dataset, muscal_pt_info_t *pt, muscal_properties_t *data) {
+int get_one_property(muscalnc_dataset_t *dataset, muscalnc_pt_info_t *pt, muscalnc_properties_t *data) {
     int offset= _buffer_offset(dataset, pt->lon_idx, pt->lat_idx, pt->dep_idx);
 
     data->vp=dataset->vp_buffer[offset];
@@ -181,8 +181,8 @@ int get_one_property(muscal_dataset_t *dataset, muscal_pt_info_t *pt, muscal_pro
     return offset;
 }
 
-int get_one_muscal1d_property(muscal_dataset_t *dataset, muscal_pt_info_t *pt, muscal_properties_t *data) {
-    if(muscal_ucvm_debug) { fprintf(stderrfp,"\ncalling get_one_muscal1d_property\n"); }
+int get_one_muscalnc1d_property(muscalnc_dataset_t *dataset, muscalnc_pt_info_t *pt, muscalnc_properties_t *data) {
+    if(muscalnc_ucvm_debug) { fprintf(stderrfp,"\ncalling get_one_muscalnc1d_property\n"); }
 
     KDVec3 *best=NULL;
     float best_dist=FLT_MAX;
@@ -204,7 +204,7 @@ int get_one_muscal1d_property(muscal_dataset_t *dataset, muscal_pt_info_t *pt, m
     kdtree_nearest(kdsurface->nodes, &query, &best, &best_dist);
     best_idx=best->lldindex;
 
-    if(muscal_ucvm_debug) { 
+    if(muscalnc_ucvm_debug) { 
       fprintf(stderrfp,"\nFOUND: %d(%lf):   %lf %lf %lf\n", best_idx, best_dist, pnts[best_idx].lon, pnts[best_idx].lat, pnts[best_idx].depth);
 fprintf(stderr,"\nFOUND: %d(%lf):   %lf %lf %lf\n", best_idx, best_dist, pnts[best_idx].lon, pnts[best_idx].lat, pnts[best_idx].depth);
     }
@@ -216,7 +216,7 @@ fprintf(stderr,"\nFOUND: %d(%lf):   %lf %lf %lf\n", best_idx, best_dist, pnts[be
 }
 
 
-float _interp_a_point(muscal_dataset_t *dataset, float *buffer, muscal_pt_info_t *pt) {
+float _interp_a_point(muscalnc_dataset_t *dataset, float *buffer, muscalnc_pt_info_t *pt) {
     int lon_idx=pt->lon_idx;
     int lat_idx=pt->lat_idx;
     int dep_idx=pt->dep_idx;
@@ -251,24 +251,24 @@ float _interp_a_point(muscal_dataset_t *dataset, float *buffer, muscal_pt_info_t
     return val0000;
 }
 
-void get_interp_property(muscal_dataset_t *dataset, muscal_pt_info_t *pt, muscal_properties_t *data) {
+void get_interp_property(muscalnc_dataset_t *dataset, muscalnc_pt_info_t *pt, muscalnc_properties_t *data) {
 
-    if(muscal_ucvm_debug) { fprintf(stderrfp,"\nInterp PROCESSING for vp\n"); }
+    if(muscalnc_ucvm_debug) { fprintf(stderrfp,"\nInterp PROCESSING for vp\n"); }
     data->vp = _interp_a_point(dataset, dataset->vp_buffer, pt);
-    if(muscal_ucvm_debug) { fprintf(stderrfp,"\nInterp PROCESSING for vs\n"); }
+    if(muscalnc_ucvm_debug) { fprintf(stderrfp,"\nInterp PROCESSING for vs\n"); }
     data->vs = _interp_a_point(dataset, dataset->vs_buffer, pt);
-    if(muscal_ucvm_debug) { fprintf(stderrfp,"\nInterp PROCESSING for rho\n"); }
+    if(muscalnc_ucvm_debug) { fprintf(stderrfp,"\nInterp PROCESSING for rho\n"); }
     data->rho = _interp_a_point(dataset, dataset->rho_buffer, pt);
     return;
 }
 
 
-/**** for muscal_cache_col_t ****/
-muscal_cache_col_t *_add_a_cache_col(muscal_dataset_t *dataset, int target_lat_idx, int target_lon_idx) {
+/**** for muscalnc_cache_col_t ****/
+muscalnc_cache_col_t *_add_a_cache_col(muscalnc_dataset_t *dataset, int target_lat_idx, int target_lon_idx) {
  
    int nz=dataset->nz;
 
-   muscal_cache_col_t *col= (muscal_cache_col_t *) malloc(sizeof(muscal_cache_col_t));
+   muscalnc_cache_col_t *col= (muscalnc_cache_col_t *) malloc(sizeof(muscalnc_cache_col_t));
 
    col->cache_col_lat_idx=target_lat_idx;
    col->cache_col_lon_idx=target_lon_idx;
@@ -287,10 +287,10 @@ muscal_cache_col_t *_add_a_cache_col(muscal_dataset_t *dataset, int target_lat_i
    return col;
 }
 
-muscal_cache_col_t *find_a_cache_col(muscal_dataset_t *dataset, int target_lat_idx, int target_lon_idx) {
+muscalnc_cache_col_t *find_a_cache_col(muscalnc_dataset_t *dataset, int target_lat_idx, int target_lon_idx) {
 
    int cnt= dataset->col_cache_cnt; 
-   muscal_cache_col_t *col;
+   muscalnc_cache_col_t *col;
 
    for(int i=0; i< cnt; i++) {
      col=dataset->col_cache[i];
@@ -304,12 +304,12 @@ muscal_cache_col_t *find_a_cache_col(muscal_dataset_t *dataset, int target_lat_i
    col=_add_a_cache_col(dataset, target_lat_idx, target_lon_idx);
     
    // find a space to put in (in case it is full)
-   if( cnt < MUSCAL_CACHE_COL_MAX) {
+   if( cnt < MUSCALNC_CACHE_COL_MAX) {
        dataset->col_cache[cnt]=col;
        dataset->col_cache_cnt=cnt+1;
        } else {
 // else has to free one out
-         int use_idx=(cnt+1) % MUSCAL_CACHE_COL_MAX;
+         int use_idx=(cnt+1) % MUSCALNC_CACHE_COL_MAX;
          free_a_cache_col(dataset->col_cache[use_idx]);
          dataset->col_cache[use_idx]=col;
 
@@ -318,7 +318,7 @@ muscal_cache_col_t *find_a_cache_col(muscal_dataset_t *dataset, int target_lat_i
    return col;     
 }
 
-void free_a_cache_col(muscal_cache_col_t *col) {
+void free_a_cache_col(muscalnc_cache_col_t *col) {
 
    // free buffer first 
    free(col->col_vp_buffer);
@@ -328,14 +328,14 @@ void free_a_cache_col(muscal_cache_col_t *col) {
    free(col);
 }
 
-/**** for muscal_cache_layer_t ****/
-muscal_cache_layer_t *_add_a_cache_layer(muscal_dataset_t *dataset, int target_dep_idx) {
+/**** for muscalnc_cache_layer_t ****/
+muscalnc_cache_layer_t *_add_a_cache_layer(muscalnc_dataset_t *dataset, int target_dep_idx) {
 
     int nx=dataset->nx;
     int ny=dataset->ny;
 
-    if(muscal_ucvm_debug) { fprintf(stderrfp, "  Loading a new layer: %zu\n", target_dep_idx); }
-    muscal_cache_layer_t *layer= (muscal_cache_layer_t *) malloc(sizeof(muscal_cache_layer_t));
+    if(muscalnc_ucvm_debug) { fprintf(stderrfp, "  Loading a new layer: %zu\n", target_dep_idx); }
+    muscalnc_cache_layer_t *layer= (muscalnc_cache_layer_t *) malloc(sizeof(muscalnc_cache_layer_t));
 
     layer->cache_layer_dep_idx=target_dep_idx;
 
@@ -352,10 +352,10 @@ muscal_cache_layer_t *_add_a_cache_layer(muscal_dataset_t *dataset, int target_d
     return layer;
 }
 
-muscal_cache_layer_t *find_a_cache_layer(muscal_dataset_t *dataset, int target_dep_idx) {
+muscalnc_cache_layer_t *find_a_cache_layer(muscalnc_dataset_t *dataset, int target_dep_idx) {
 
    int cnt= dataset->layer_cache_cnt;
-   muscal_cache_layer_t *layer;
+   muscalnc_cache_layer_t *layer;
 
    for(int i=0; i< cnt; i++) {
      layer=dataset->layer_cache[i];
@@ -368,19 +368,19 @@ muscal_cache_layer_t *find_a_cache_layer(muscal_dataset_t *dataset, int target_d
    layer=_add_a_cache_layer(dataset, target_dep_idx);
 
    // find a space to put in (in case it is full)
-   if( cnt < MUSCAL_CACHE_LAYER_MAX) {
+   if( cnt < MUSCALNC_CACHE_LAYER_MAX) {
        dataset->layer_cache[cnt]=layer;
        dataset->layer_cache_cnt=cnt+1;
        } else {
 // else has to free one out
-         int use_idx=(cnt+1) % MUSCAL_CACHE_LAYER_MAX;
+         int use_idx=(cnt+1) % MUSCALNC_CACHE_LAYER_MAX;
          free_a_cache_layer(dataset->layer_cache[use_idx]);
          dataset->layer_cache[use_idx]=layer;
    }
    return layer;     
 }
 
-void free_a_cache_layer(muscal_cache_layer_t *layer) {
+void free_a_cache_layer(muscalnc_cache_layer_t *layer) {
 
    free(layer->layer_vp_buffer);
    free(layer->layer_vs_buffer);

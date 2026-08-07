@@ -22,8 +22,8 @@ void usage() {
 }
 
 #define KD_MAX_LINE 1000
-int muscal_ucvm_debug=0;
-int muscal_ucvm_debug_detail=0;
+int muscalnc_ucvm_debug=0;
+int muscalnc_ucvm_debug_detail=0;
 FILE *stderrfp=NULL;
 
 int main(int argc, char **argv)
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
   strcpy(datafile, argv[2]);
   strcpy(queryfile, argv[3]);
 
-  if(muscal_ucvm_debug) {
+  if(muscalnc_ucvm_debug) {
       stderrfp = fopen("query_debug.log", "w+");
       fprintf(stderrfp,"\n===== START kdtree_query ===== \n\n");
   }
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
   }
   fclose(fp);
   nodes = build_kdtree(vpnts, numread, 0);
-  if(muscal_ucvm_debug) { fprintf(stderrfp,"kdtree with -- %d surface points\n",numread); }
+  if(muscalnc_ucvm_debug) { fprintf(stderrfp,"kdtree with -- %d surface points\n",numread); }
 
   // QUERY against kdtree
   fp=fopen(queryfile,"r");
@@ -81,11 +81,11 @@ int main(int argc, char **argv)
       float best_dist = FLT_MAX;
       if(line[0]=='#') continue;  // a comment line
       if(sscanf(line,"%lf %lf %lf", &lon, &lat, &depth) == 3) {
-         if(muscal_ucvm_debug) { fprintf(stderrfp,"  query point -> lat(%lf) lon(%lf) depth(%lf) \n", lat, lon, depth); }
+         if(muscalnc_ucvm_debug) { fprintf(stderrfp,"  query point -> lat(%lf) lon(%lf) depth(%lf) \n", lat, lon, depth); }
 	 lld_to_xyz(&query, lat, lon, depth, 0);
 	 kdtree_nearest(nodes, &query, &best, &best_dist);
          int best_idx=best->lldindex;
-         if(muscal_ucvm_debug) { fprintf(stderrfp,"FOUND: %d(%lf):   %lf %lf %lf\n\n", best_idx, best_dist, pnts[best_idx].lon, pnts[best_idx].lat, pnts[best_idx].depth); }
+         if(muscalnc_ucvm_debug) { fprintf(stderrfp,"FOUND: %d(%lf):   %lf %lf %lf\n\n", best_idx, best_dist, pnts[best_idx].lon, pnts[best_idx].lat, pnts[best_idx].depth); }
 
          numquery++;
       }
@@ -98,15 +98,15 @@ int main(int argc, char **argv)
 
       if(line[0]=='#') continue;  // a comment line
       if(sscanf(line,"%lf %lf %lf", &lon, &lat, &depth) == 3) {
-         if(muscal_ucvm_debug) { fprintf(stderrfp,"  query point -> lat(%lf) lon(%lf) depth(%lf) \n", lat, lon, depth); }
+         if(muscalnc_ucvm_debug) { fprintf(stderrfp,"  query point -> lat(%lf) lon(%lf) depth(%lf) \n", lat, lon, depth); }
 	 lld_to_xyz(&query, lat, lon, depth, 0);
-         if(muscal_ucvm_debug_detail) {
+         if(muscalnc_ucvm_debug_detail) {
 	   kdtree_nearest_full(pnts,nodes, &query, &best, &best_dist);
            } else {
 	     kdtree_nearest(nodes, &query, &best, &best_dist);
          }
          int best_idx=best->lldindex;
-         if(muscal_ucvm_debug) { 
+         if(muscalnc_ucvm_debug) { 
 fprintf(stderrfp,"FOUND: %d(%lf):   %lf %lf %lf\n", best_idx, best_dist, pnts[best_idx].lon, pnts[best_idx].lat, pnts[best_idx].depth);
 fprintf(stderrfp,"           vs%lf vp%lf rho%lf\n\n", pnts[best_idx].vs, pnts[best_idx].vp, pnts[best_idx].density);
  }
@@ -115,12 +115,12 @@ fprintf(stderrfp,"           vs%lf vp%lf rho%lf\n\n", pnts[best_idx].vs, pnts[be
       }
   }
 
-  if(muscal_ucvm_debug) { fprintf(stderrfp,"total for %d locations\n", numquery); }
+  if(muscalnc_ucvm_debug) { fprintf(stderrfp,"total for %d locations\n", numquery); }
 
   // remember to free all malloc
   //free nodes 
   free_kdtree(nodes);
   free(pnts);
   free(vpnts);
-  if(muscal_ucvm_debug) { fprintf(stderrfp,"\n..DONE..\n"); fclose(stderrfp); }
+  if(muscalnc_ucvm_debug) { fprintf(stderrfp,"\n..DONE..\n"); fclose(stderrfp); }
 }

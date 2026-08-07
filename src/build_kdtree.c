@@ -22,8 +22,8 @@ void usage() {
 
 #define KD_MAX_LINE 1000
 
-int muscal_ucvm_debug=1;
-int muscal_ucvm_debug_detail=0;
+int muscalnc_ucvm_debug=1;
+int muscalnc_ucvm_debug_detail=0;
 FILE *stderrfp=NULL;
 
 int main(int argc, char **argv)
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
   strcpy(datafile, argv[2]);
   strcpy(flatfile, argv[3]);
 
-  if(muscal_ucvm_debug) {
+  if(muscalnc_ucvm_debug) {
       stderrfp = fopen("query_debug.log", "w+");
       fprintf(stderrfp,"\n===== START build_kdtree ===== \n\n");
   }
@@ -72,12 +72,12 @@ int main(int argc, char **argv)
   }
   fclose(fp);
   nodes = build_kdtree(vpnts, numread, 0);
-  if(muscal_ucvm_debug) { fprintf(stderrfp,"kdtree with -- %d surface points\n",numread); }
+  if(muscalnc_ucvm_debug) { fprintf(stderrfp,"kdtree with -- %d surface points\n",numread); }
 
   int pos = 0;
   int flatten_top= flatten_kdtree(nodes, dnodes, &pos);
 
-  if(muscal_ucvm_debug) { fprintf(stderrfp,"flattend -- %d surface points\n",pos); }
+  if(muscalnc_ucvm_debug) { fprintf(stderrfp,"flattend -- %d surface points\n",pos); }
 
   write_flatten_kdtree(flatfile, dnodes, numread);
 
@@ -85,5 +85,5 @@ int main(int argc, char **argv)
   free_kdtree(nodes);
   free(pnts);
   free(vpnts);
-  if(muscal_ucvm_debug) { fprintf(stderrfp,"\n..DONE..\n"); fclose(stderrfp); }
+  if(muscalnc_ucvm_debug) { fprintf(stderrfp,"\n..DONE..\n"); fclose(stderrfp); }
 }

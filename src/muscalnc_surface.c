@@ -1,6 +1,6 @@
 /*
- * @file muscal_surface.c
- * @brief Extract surface material properities from MUSCAL dataset in a fix step
+ * @file muscalnc_surface.c
+ * @brief Extract surface material properities from MUSCALNC dataset in a fix step
  * @author - SCEC
  * @version 1.0
  *
@@ -15,13 +15,13 @@
 #include <assert.h>
 #include <string.h>
 #include "ucvm_model_dtypes.h"
-#include "muscal_dataset.h"
-#include "muscal_util.h"
+#include "muscalnc_dataset.h"
+#include "muscalnc_util.h"
 #include "um_netcdf.h"
 #include "cJSON.h"
-#include "muscal.h"
+#include "muscalnc.h"
 
-int muscal_debug=1;
+int muscalnc_debug=1;
 
 void extract_surface(float dep);
 
@@ -36,9 +36,9 @@ int _compare_double(double f1, double f2) {
 
 /* Usage function */
 void usage() {
-  printf("     muscal_surface - (c) SCEC\n");
-  printf("Extract surface material properties from a MUSCAL model\n");
-  printf("\tusage: muscal_surface [-d][-h] [-i file.in]\n\n");
+  printf("     muscalnc_surface - (c) SCEC\n");
+  printf("Extract surface material properties from a MUSCALNC model\n");
+  printf("\tusage: muscalnc_surface [-d][-h] [-i file.in]\n\n");
   printf("Flags:\n");
   printf("\t-d enable debug/verbose mode\n");
   printf("\t-i layer list <optional>\n");
@@ -54,7 +54,7 @@ extern char *optarg;
 extern int optind, opterr, optopt;
 
 /**
- * Initializes and MUSCAL in standalone mode with ucvm plugin 
+ * Initializes and MUSCALNC in standalone mode with ucvm plugin 
  * api.
  *
  * @param argc The number of arguments.
@@ -79,7 +79,7 @@ int main(int argc, char* const argv[]) {
         dfp=fopen(optarg,"r");
         break;
       case 'd':
-        muscal_debug=1;
+        muscalnc_debug=1;
         break;
       case 'h':
         usage();
@@ -91,24 +91,24 @@ int main(int argc, char* const argv[]) {
       }
     }
 
-    if(muscal_debug) { muscal_setdebug(); }
+    if(muscalnc_debug) { muscalnc_setdebug(); }
 
     // Initialize the model. 
     // try to use Use UCVM_INSTALL_PATH
     char *envstr=getenv("UCVM_INSTALL_PATH");
     if(envstr != NULL) {
-      assert(muscal_init(envstr, "muscal") == 0);
+      assert(muscalnc_init(envstr, "muscalnc") == 0);
       } else {
-        assert(muscal_init("..", "muscal") == 0);
+        assert(muscalnc_init("..", "muscalnc") == 0);
     }
-    if(muscal_debug) { fprintf(stderrfp,"Loaded the model successfully.\n"); }
+    if(muscalnc_debug) { fprintf(stderrfp,"Loaded the model successfully.\n"); }
 
     char line[1001];
     int depth;
     int done=0;
     int idx=0;
 
-    muscal_dataset_t *dataset= muscal_velocity_model->datasets[0];
+    muscalnc_dataset_t *dataset= muscalnc_velocity_model->datasets[0];
     float *deplist=dataset->depths;
 
     while (!done) {
@@ -116,7 +116,7 @@ int main(int argc, char* const argv[]) {
         int cnt=dataset->nz;
         for(int i=0; i<cnt;  i++) {
           depth=deplist[i];
-          if(muscal_debug) { fprintf(stderrfp,"depths: %d\n",depth); }
+          if(muscalnc_debug) { fprintf(stderrfp,"depths: %d\n",depth); }
           //extract_surface(depth);
           idx++;
         }
@@ -125,7 +125,7 @@ int main(int argc, char* const argv[]) {
           if(fgets(line, 1000, dfp) == NULL) { 
             done=1;
             } else {
-              if(muscal_debug) { fprintf(stderrfp,"LINE: %s\n",line); }
+              if(muscalnc_debug) { fprintf(stderrfp,"LINE: %s\n",line); }
               if(line[0]!='#') { 
                  if (sscanf(line,"%d", &depth) == 1) {
                    // extract_surface(depth);
@@ -136,8 +136,8 @@ int main(int argc, char* const argv[]) {
       }
     }
 
-    assert(muscal_finalize() == 0);
-    if(muscal_debug) { fprintf(stderrfp ,"Model closed successfully.\n"); }
+    assert(muscalnc_finalize() == 0);
+    if(muscalnc_debug) { fprintf(stderrfp ,"Model closed successfully.\n"); }
 
     if(dep_flag) fclose(dfp);
 
@@ -147,9 +147,9 @@ int main(int argc, char* const argv[]) {
 
 void extract_surface(float dep) {
 
-    if(muscal_debug) { fprintf(stderrfp, "calling : depth(%d)\n", dep); }
+    if(muscalnc_debug) { fprintf(stderrfp, "calling : depth(%d)\n", dep); }
     int data_idx=0; // first and only one
-    muscal_dataset_t *dataset= muscal_velocity_model->datasets[data_idx];
+    muscalnc_dataset_t *dataset= muscalnc_velocity_model->datasets[data_idx];
 
     float *lon_list=dataset->longitudes;
     float *lat_list=dataset->latitudes;
@@ -163,9 +163,9 @@ void extract_surface(float dep) {
     int target_dep_idx=find_buffer_idx_clamped(dep_list,nz,dep);
 
     // grab a layer from cache or try to load it from external data file
-    muscal_cache_layer_t *layer=find_a_cache_layer(dataset, target_dep_idx);
+    muscalnc_cache_layer_t *layer=find_a_cache_layer(dataset, target_dep_idx);
 
-if(muscal_debug){ fprintf(stderrfp,">> Using External data/Layer cache - current count=%d\n", dataset->layer_cache_cnt); }
+if(muscalnc_debug){ fprintf(stderrfp,">> Using External data/Layer cache - current count=%d\n", dataset->layer_cache_cnt); }
     float *tmp_vp_buffer=layer->layer_vp_buffer;
     float *tmp_vs_buffer=layer->layer_vs_buffer;
     float *tmp_rho_buffer=layer->layer_rho_buffer;
