@@ -1,19 +1,23 @@
 #!/bin/bash
+set -e # Exit on any command failure
 
-tmp=`uname -s`
+tmp="$(uname -s)"
 
-if [ $tmp == 'Darwin' ]; then
-##for macOS, make sure have automake/aclocal
-  brew install automake
-  brew reinstall gcc
-  brew install libtool
+if [ "$tmp" = "Darwin" ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv 2>/dev/null)"
+  brew install automake libtool gcc
   export PATH="/opt/homebrew/opt/libtool/libexec/gnubin:$PATH"
 fi
 
-## need to grab some python libs
-python3 -m pip install scipy h5py numpy pandas pybind11 netCDF4
+## Create a virtual environment to resolve PEP 668 pip errors on macOS
+python3 -m venv .venv
+source .venv/bin/activate
 
+## Install required Python packages safely
+pip install --upgrade pip
+pip install scipy h5py numpy pandas pybind11 netCDF4
 
+## actual build
 libtoolize
 aclocal -I m4
 autoconf
