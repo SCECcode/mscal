@@ -72,7 +72,7 @@ muscalnc_dataset_t *make_a_muscalnc_dataset(char *datadir, char *datafile, int t
     data->longitudes=(float *) get_nc_float_buffer(data->ncid, "longitude", filepath, &vtype, &nelems, 1);
     data->nx=nelems;
     if(muscalnc_ucvm_debug_detail) {
-        fprintf(stderrfp, "  Longitudes: %d\n", nelems);
+        fprintf(stderrfp, "  Longitudes: %ld\n", nelems);
         for(int i=0;i<nelems; i++) {
             fprintf(stderrfp, "%d  %f\n", i, data->longitudes[i]);
        	}
@@ -81,7 +81,7 @@ muscalnc_dataset_t *make_a_muscalnc_dataset(char *datadir, char *datafile, int t
     data->latitudes=(float *) get_nc_float_buffer(data->ncid, "latitude", filepath, &vtype, &nelems, 1);
     data->ny=nelems;
     if(muscalnc_ucvm_debug_detail) {
-        fprintf(stderrfp, "  Latitude: %d\n", nelems);
+        fprintf(stderrfp, "  Latitude: %ld\n", nelems);
         for(int i=0;i<nelems; i++) {
             fprintf(stderrfp, "%d  %f\n", i, data->latitudes[i]);
        	}
@@ -90,7 +90,7 @@ muscalnc_dataset_t *make_a_muscalnc_dataset(char *datadir, char *datafile, int t
     data->depths=(float *) get_nc_float_buffer(data->ncid, "depth", filepath, &vtype, &nelems, 1);
     data->nz=nelems;
     if(muscalnc_ucvm_debug_detail) {
-        fprintf(stderrfp, "  Depths: %d\n", nelems);
+        fprintf(stderrfp, "  Depths: %ld\n", nelems);
         for(int i=0;i<nelems; i++) {
             fprintf(stderrfp, "%d  %f\n", i, data->depths[i]);
        	}
@@ -334,7 +334,7 @@ muscalnc_cache_layer_t *_add_a_cache_layer(muscalnc_dataset_t *dataset, int targ
     int nx=dataset->nx;
     int ny=dataset->ny;
 
-    if(muscalnc_ucvm_debug) { fprintf(stderrfp, "  Loading a new layer: %zu\n", target_dep_idx); }
+    if(muscalnc_ucvm_debug) { fprintf(stderrfp, "  Loading a new layer: %d\n", target_dep_idx); }
     muscalnc_cache_layer_t *layer= (muscalnc_cache_layer_t *) malloc(sizeof(muscalnc_cache_layer_t));
 
     layer->cache_layer_dep_idx=target_dep_idx;

@@ -31,7 +31,7 @@ const char *muscalnc_version_string = "muscalnc";
 /** Set to 1 when the model is ready for query. */
 int muscalnc_is_initialized = 0;
 
-char muscalnc_data_directory[128];
+char muscalnc_data_directory[PATH_MAX];
 
 /** Configuration parameters. */
 muscalnc_configuration_t *muscalnc_configuration;
@@ -79,11 +79,11 @@ int muscalnc_init(const char *dir, const char *label) {
            return UCVM_MODEL_CODE_ERROR;
            } else {
            // Set up the data directory.
-               sprintf(muscalnc_data_directory, "%s/data/%s", dir, muscalnc_configuration->model_dir);
+               snprintf(muscalnc_data_directory, sizeof(muscalnc_data_directory),  "%s/data/%s", dir, muscalnc_configuration->model_dir);
        }
        } else {
            // Set up the data directory.
-           sprintf(muscalnc_data_directory, "%s/model/%s/data/%s", dir, label, muscalnc_configuration->model_dir);
+           snprintf(muscalnc_data_directory, sizeof(muscalnc_data_directory),  "%s/model/%s/data/%s", dir, label, muscalnc_configuration->model_dir);
     }
 
     // Can we allocate the model, or parts of it, to memory. If so, we do.
@@ -391,7 +391,7 @@ int muscalnc_read_configuration(char *file, muscalnc_configuration_t *config) {
 
             // Which variable are we editing?
             if (strcmp(key, "utm_zone") == 0) config->utm_zone = atoi(value);
-            if (strcmp(key, "model_dir") == 0) sprintf(config->model_dir, "%s", value);
+            if (strcmp(key, "model_dir") == 0) snprintf(config->model_dir, sizeof(value), "%s", value);
             if (strcmp(key, "interpolation") == 0) { 
                 config->interpolation=0;
                 if (strcmp(value,"on") == 0) { config->interpolation=1;
