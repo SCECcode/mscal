@@ -44,7 +44,7 @@ jobs:
       run: (mv muscalnc $RUNNER_WORKSPACE/muscalnc/ucvm/work/model; pwd; ls)
       shell: bash
     - name: build muscalnc as part of ucvm 
-      run: (cd $RUNNER_WORKSPACE/muscalnc/ucvm/work/model/muscalnc; ./.github/scripts/muscalnc-build.sh)
+      run: (cd $RUNNER_WORKSPACE/muscalnc/ucvm/work/model/muscalnc; ./.github/scripts/muscalnc-build-with-ucvm.sh)
       shell: bash
 ### check ucvm is still valid
     - name: check on ucvm
@@ -97,7 +97,7 @@ jobs:
       run: (mv muscalnc $RUNNER_WORKSPACE/muscalnc/ucvm/work/model; pwd; ls)
       shell: bash
     - name: build muscalnc as part of ucvm 
-      run: (cd $RUNNER_WORKSPACE/muscalnc/ucvm/work/model/muscalnc; ./.github/scripts/muscalnc-build.sh)
+      run: (cd $RUNNER_WORKSPACE/muscalnc/ucvm/work/model/muscalnc; ./.github/scripts/muscalnc-build-with-ucvm.sh)
       shell: bash
 ### check ucvm is still valid
     - name: check on ucvm
