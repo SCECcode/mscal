@@ -391,7 +391,7 @@ int muscalnc_read_configuration(char *file, muscalnc_configuration_t *config) {
 
             // Which variable are we editing?
             if (strcmp(key, "utm_zone") == 0) config->utm_zone = atoi(value);
-            if (strcmp(key, "model_dir") == 0) snprintf(config->model_dir, sizeof(value), "%s", value);
+            if (strcmp(key, "model_dir") == 0) snprintf(config->model_dir, sizeof(config->model_dir), "%s", value);
             if (strcmp(key, "interpolation") == 0) { 
                 config->interpolation=0;
                 if (strcmp(value,"on") == 0) { config->interpolation=1;
