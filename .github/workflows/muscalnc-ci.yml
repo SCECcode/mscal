@@ -2,7 +2,7 @@ name: muscalnc-ci
 
 on:
   push:
-    branches: [ main ]
+    branches: [ neednetcdf ]
 
 jobs:
   muscalnc-build-standalone-mac:
