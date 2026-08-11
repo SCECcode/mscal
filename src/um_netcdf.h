@@ -23,7 +23,7 @@ int open_nc(const char* path);
 int get_nc_varid(int ncid, const char* varname, const char* path);
 int get_nc_var(int ncid, int varid, nc_type *vtype, int *ndims, int **dimids, size_t **dimlens);
 
-int print_nc_buffer_offset(nc_type vtype, int offset, void *buffer);
+void print_nc_buffer_offset(nc_type vtype, int offset, void *buffer);
 void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, size_t *nelems, int e_dimlens);
 float *get_nc_float_buffer(int ncid, char *varname, const char *path, nc_type *vtype, size_t *nelems, int e_dimlens);
 float get_nc_vara_float(int ncid, int varid, int dep_idx, int lat_idx, int lon_idx);

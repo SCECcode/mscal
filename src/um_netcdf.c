@@ -73,7 +73,7 @@ int get_nc_var(int ncid, int varid, nc_type *vtype, int *ndims, int **dimids, si
 
 
 // offset= (dep_idx)*(lat_cnt * lon_cnt)+(lat_idx)*(lon_cnt)+lon_idx
-int print_nc_buffer_offset(nc_type vtype, int offset, void *buffer) {
+void print_nc_buffer_offset(nc_type vtype, int offset, void *buffer) {
 
     switch (vtype) {
         case NC_BYTE:

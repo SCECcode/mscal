@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e # Exit on any command failure
 
+if [ -z "$UCVM_INSTALL_PATH" ]; then
+  echo "ERROR: UCVM_INSTALL_PATH environment variable is not set."
+  exit 1
+fi
+
 tmp="$(uname -s)"
 
 if [ "$tmp" = "Darwin" ]; then
@@ -13,9 +18,8 @@ fi
 python3 -m venv .venv
 source .venv/bin/activate
 
-## Install required Python packages safely
-pip install --upgrade pip
-pip install scipy h5py numpy pandas pybind11 netCDF4
+python3 -m pip install --upgrade pip 
+python3 -m pip install scipy h5py numpy pandas pybind11 netCDF4
 
 ## actual build
 libtoolize
