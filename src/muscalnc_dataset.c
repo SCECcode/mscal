@@ -359,7 +359,7 @@ muscalnc_cache_layer_t *find_a_cache_layer(muscalnc_dataset_t *dataset, int targ
 
    for(int i=0; i< cnt; i++) {
      layer=dataset->layer_cache[i];
-     if((layer->cache_layer_dep_idx == target_dep_idx) ) {
+     if(layer->cache_layer_dep_idx == target_dep_idx) {
         // found it
         return layer;
      }

@@ -147,7 +147,7 @@ int main(int argc, char* const argv[]) {
 
 void extract_surface(float dep) {
 
-    if(muscalnc_debug) { fprintf(stderrfp, "calling : depth(%ld)\n", dep); }
+    if(muscalnc_debug) { fprintf(stderrfp, "calling : depth(%f)\n", dep); }
     int data_idx=0; // first and only one
     muscalnc_dataset_t *dataset= muscalnc_velocity_model->datasets[data_idx];
 
