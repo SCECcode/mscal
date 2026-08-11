@@ -40,6 +40,13 @@ jobs:
       uses: actions/checkout@v4
       with: 
         path: muscalnc
+#    - name: Start SSH debug with tmate
+#      if: ${{ failure() }}
+#      uses: mxschmitt/action-tmate@v3
+#      with:
+#        limit-access-to-actor: true
+#    - name: sleep to keep runner alive
+#      run: sleep 3600
     - name: move it to the right location
       run: (mv muscalnc $RUNNER_WORKSPACE/muscalnc/ucvm/work/model; pwd; ls)
       shell: bash
@@ -56,13 +63,6 @@ jobs:
     - name: test muscalnc under ucvm
       run: (cd $RUNNER_WORKSPACE/muscalnc/ucvm; source $UCVM_INSTALL_PATH/conf/ucvm_env.sh; ./.github/scripts/ucvm-test.sh)
       shell: bash
-#    - name: Start SSH debug with tmate
-#      if: ${{ failure() }}
-#      uses: mxschmitt/action-tmate@v3
-#      with:
-#        limit-access-to-actor: true
-#    - name: sleep to keep runner alive
-#      run: sleep 3600
 
   muscalnc-build-ucvm-mac:
     if: ${{ success() }}
