@@ -93,7 +93,7 @@ jobs:
     - name: Start SSH debug with tmate
 #      if: ${{ failure() }}
     - name: Configure tmate to use port 443
-      run: echo 'set -g tmate-server-port 443' >> ~/.tmate.conf
+      run: echo "set -g tmate-server-port 443" >> ~/.tmate.conf
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
       with:
