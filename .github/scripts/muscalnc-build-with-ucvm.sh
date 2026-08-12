@@ -26,9 +26,8 @@ libtoolize
 aclocal -I m4
 autoconf
 automake --add-missing --force-missing
-./configure --prefix=$UCVM_INSTALL_PATH/model/muscalnc
 
-./configure --prefix=/home/runner/work/muscalnc/muscalnc/target/model/muscalnc --enable-shared --with-hdf5-libdir=$UCVM_INSTALL_PATH/lib/hdf5/lib --with-hdf5-incdir=$UCVM_INSTALL_PATH/lib/hdf5/include --with-netcdf-libdir=$UCVM_INSTALL_PATH/lib/netcdf/lib --with-netcdf-incdir=$UCVM_INSTALL_PATH/lib/netcdf/include
+./configure --prefix=$UCVM_INSTALL_PATH/model/muscalnc --enable-shared --with-hdf5-libdir=$UCVM_INSTALL_PATH/lib/hdf5/lib --with-hdf5-incdir=$UCVM_INSTALL_PATH/lib/hdf5/include --with-netcdf-libdir=$UCVM_INSTALL_PATH/lib/netcdf/lib --with-netcdf-incdir=$UCVM_INSTALL_PATH/lib/netcdf/include
 
 make
 make install
