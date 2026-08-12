@@ -90,11 +90,11 @@ jobs:
       with:
          initiating-repo: 'muscalnc'
          target-model: 'muscalnc'
-    - name: Start SSH debug with tmate
+#    - name: Start SSH debug with tmate
 #      if: ${{ failure() }}
     - name: Configure tmate to use port 443
       run: echo "set -g tmate-server-port 443" >> ~/.tmate.conf
-    - name: Setup tmate session
+    - name: Start SSH debug with tmate
       uses: mxschmitt/action-tmate@v3
       with:
         limit-access-to-actor: true
