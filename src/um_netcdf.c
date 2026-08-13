@@ -258,7 +258,9 @@ float *get_nc_float_buffer(int ncid, char *varname, const char *path, nc_type *v
     nc_type nvtype;
 
     varid=get_nc_varid(ncid,varname,path);
+//fprintf(stderr,"AAA varname %s, ncid %d, varid %d\n", varname, ncid, varid);
     nnelems =get_nc_var(ncid, varid, &nvtype, &ndims, &dimids, &dimlens);
+//fprintf(stderr,"AAAA  nnelems %ld\n", nnelems);
     // ndims should be 1 or 3
     if(ndims != e_dimlens) {
         fprintf(stderr," Fail to extract %s data\n",varname);
