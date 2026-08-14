@@ -30,6 +30,7 @@ jobs:
       with:
          initiating-repo: 'muscalnc'
          target-model: 'muscalnc'
+         target-branch: 'testMei'
     - name: get-result
       run: more ${{ steps.build-ucvm.outputs.build-log }}
       shell: bash
