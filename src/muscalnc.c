@@ -566,6 +566,7 @@ int muscalnc_configuration_finalize(muscalnc_configuration_t *config) {
  */
 
 int muscalnc_velocity_model_finalize(muscalnc_model_t *model) {
+
     int max_idx=model->dataset_cnt; // how many datasets are there
     for(int i=0; i<max_idx; i++) {
         muscalnc_dataset_t *data= model->datasets[i];

@@ -142,7 +142,7 @@ int free_muscalnc_dataset(muscalnc_dataset_t *data) {
     if(data->vp_buffer != NULL) free(data->vp_buffer);
     if(data->vs_buffer != NULL) free(data->vs_buffer);
     if(data->rho_buffer != NULL) free(data->rho_buffer);
-    nc_close(data->ncid);
+    close_nc(data->ncid);
 
     if(data->kdsurface!=NULL) {
       free_kdnodesetup(data->kdsurface);

@@ -5,13 +5,14 @@
 
 #include "um_netcdf.h"
 
-int debug=0;
+int muscalnc_nc_debug=1;
+FILE *stderrncfp=NULL;
 
 int _NC_CHECK(char *fname, int e) {
     int _rc = e;
     int _failed = (_rc != NC_NOERR);
-    if(debug) {
-      fprintf(stderr,"NC_CHECK on %s and %d\n",fname,_rc);
+    if(muscalnc_nc_debug) {
+      fprintf(stderrncfp,"NC_CHECK on (%s) and %d\n",fname,_rc);
     }
     if (_failed) { 
         fprintf(stderr, "NetCDF Error (%d): %s\n", _rc, nc_strerror(_rc));
@@ -23,18 +24,36 @@ int _NC_CHECK(char *fname, int e) {
 /* Open file (read-only) */
 int open_nc(const char* path) {
     int ncid = -1;
-    _NC_CHECK("nc_open", nc_open(path, NC_NOWRITE, &ncid));
+
+    if(muscalnc_nc_debug) {
+      stderrncfp = fopen("muscalnc_nc_debug.log", "w+");
+      fprintf(stderrncfp,"\n===== START nc debug ===== \n\n");
+    }
+
+    _NC_CHECK("nc_open/open_nc", nc_open(path, NC_NOWRITE, &ncid));
+
     return ncid;
+}
+
+void close_nc(int ncid) {
+    if(muscalnc_nc_debug) {
+      fprintf(stderrncfp,"\n==== nc debug,  DONE ====\n\n");
+      fclose(stderrncfp);
+    } 
+    nc_close(ncid);
 }
  
 /* Get variable ID by name */
 int get_nc_varid(int ncid, const char* varname, const char *path) { 
     int varid = -1;
     int status = nc_inq_varid(ncid, varname, &varid);
+    if(muscalnc_nc_debug) {    
+        fprintf(stderrncfp, "\nLOOKING at Variable '%s'\n",varname);
+    }
     if (status != NC_NOERR) {
         fprintf(stderr, "Variable '%s' not found in %s: %s\n",
                 varname, path, nc_strerror(status));
-        nc_close(ncid);
+        close_nc(ncid);
         return EXIT_FAILURE;
     }
     return varid;
@@ -45,7 +64,7 @@ int get_nc_varid(int ncid, const char* varname, const char *path) {
 int get_nc_var(int ncid, int varid, nc_type *vtype, int *ndims, int **dimids, size_t **dimlens) { 
     int nndims = 0;
     int natts = 0;
-    _NC_CHECK("nc_inq_var",nc_inq_var(ncid, varid, NULL, vtype, &nndims, NULL, &natts));
+    _NC_CHECK("nc_inq_var/get_nc_var",nc_inq_var(ncid, varid, NULL, vtype, &nndims, NULL, &natts));
     if (nndims <= 0) {
         fprintf(stderr, "Variable has no dimensions (scalar). Reading scalar...\n");
     }
@@ -53,26 +72,26 @@ int get_nc_var(int ncid, int varid, nc_type *vtype, int *ndims, int **dimids, si
     int *ndimids = (int *)malloc(sizeof(int) * (nndims > 0 ? nndims : 1));
     if (!ndimids) {
         fprintf(stderr, "Out of memory allocating dimids\n");
-        nc_close(ncid);
+        close_nc(ncid);
         return EXIT_FAILURE;
     }
 
     if (nndims > 0) {
-        _NC_CHECK("nc_inq_var",nc_inq_var(ncid, varid, NULL, NULL, NULL, ndimids, NULL));
+        _NC_CHECK("nc_inq_var/get_nc_var",nc_inq_var(ncid, varid, NULL, NULL, NULL, ndimids, NULL));
     }
 
     size_t *ndimlens = (size_t *)malloc(sizeof(size_t) * (nndims > 0 ? nndims : 1));
     if (!*ndimlens) {
         fprintf(stderr, "Out of memory allocating *dimlens\n");
         free(ndimids);
-        nc_close(ncid);
+        close_nc(ncid);
         return EXIT_FAILURE;
     }
 
     size_t nelems = 1;
     for (int i = 0; i < nndims; ++i) {
         size_t len;
-        _NC_CHECK("nc_inq_dimlen",nc_inq_dimlen(ncid, ndimids[i], &len));
+        _NC_CHECK("nc_inq_dimlen/get_nc_var",nc_inq_dimlen(ncid, ndimids[i], &len));
         ndimlens[i] = len;
         nelems *= len;
     }
@@ -139,6 +158,7 @@ void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, s
     nc_type nvtype;
 
     varid=get_nc_varid(ncid,varname,path);
+    if(muscalnc_nc_debug) { fprintf(stderrncfp,"   Grab buffer for %s\n",varname); }
     nnelems =get_nc_var(ncid, varid, &nvtype, &ndims, &dimids, &dimlens);
     // ndims should be 1 or 3
     if(ndims != e_dimlens) {
@@ -149,85 +169,74 @@ void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, s
     switch ( nvtype ) {
         case NC_BYTE:
         case NC_UBYTE:
-            //fprintf(stderr," buffer of NC_BYTE or NC_UBYTE \n");
             elem_size = sizeof(unsigned char);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            _NC_CHECK("nc_get_var_ucar",nc_get_var_uchar(ncid, varid, (unsigned char*)buffer));
+            _NC_CHECK("nc_get_var_ucar/get_nc_buffer",nc_get_var_uchar(ncid, varid, (unsigned char*)buffer));
             break;
 
         case NC_CHAR:
             /* NC_CHAR often represents character arrays / strings */
-            //fprintf(stderr," buffer of NC_CHAR \n");
             elem_size = sizeof(char);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            _NC_CHECK("nc_get_var_text",nc_get_var_text(ncid, varid, (char*)buffer));
+            _NC_CHECK("nc_get_var_text/get_nc_buffer",nc_get_var_text(ncid, varid, (char*)buffer));
             break;
 
         case NC_SHORT:
-            //fprintf(stderr," buffer of NC_SHORT \n");
             elem_size = sizeof(short);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            _NC_CHECK("nc_get_var_short",nc_get_var_short(ncid, varid, (short*)buffer));
+            _NC_CHECK("nc_get_var_short/get_nc_buffer",nc_get_var_short(ncid, varid, (short*)buffer));
             break;
 
         case NC_USHORT:
-            //fprintf(stderr," buffer of NC_USHORT \n");
             elem_size = sizeof(unsigned short);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            _NC_CHECK("nc_get_var_ushort",nc_get_var_ushort(ncid, varid, (unsigned short*)buffer));
+            _NC_CHECK("nc_get_var_ushort/get_nc_buffer",nc_get_var_ushort(ncid, varid, (unsigned short*)buffer));
             break;
 
         case NC_INT:
-            //fprintf(stderr," buffer of NC_INT \n");
             elem_size = sizeof(int);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            _NC_CHECK("nc_get_var_int",nc_get_var_int(ncid, varid, (int*)buffer));
+            _NC_CHECK("nc_get_var_int/get_nc_buffer",nc_get_var_int(ncid, varid, (int*)buffer));
             break;
 
         case NC_UINT:
-            //fprintf(stderr," buffer of NC_UINT \n");
             elem_size = sizeof(unsigned int);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            _NC_CHECK("nc_get_var_uint",nc_get_var_uint(ncid, varid, (unsigned int*)buffer));
+            _NC_CHECK("nc_get_var_uint/get_nc_buffer",nc_get_var_uint(ncid, varid, (unsigned int*)buffer));
             break;
 
         case NC_INT64:
-            //fprintf(stderr," buffer of NC_INT64 \n");
             elem_size = sizeof(long long);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            _NC_CHECK("nc_get_var_longlong",nc_get_var_longlong(ncid, varid, (long long*)buffer));
+            _NC_CHECK("nc_get_var_longlong/get_nc_buffer",nc_get_var_longlong(ncid, varid, (long long*)buffer));
             break;
 
         case NC_UINT64:
-            //fprintf(stderr," buffer of NC_UINT64 \n");
             elem_size = sizeof(unsigned long long);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            _NC_CHECK("nc_get_var_ulonglong",nc_get_var_ulonglong(ncid, varid, (unsigned long long*)buffer));
+            _NC_CHECK("nc_get_var_ulonglong/get_nc_buffer",nc_get_var_ulonglong(ncid, varid, (unsigned long long*)buffer));
             break;
 
         case NC_FLOAT:
-            //fprintf(stderr,"   buffer of NC_FLOAT \n");
             elem_size = sizeof(float);
             buffer = malloc(nnelems * elem_size);
-            //fprintf(stderr,"   needs %d \n",nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            _NC_CHECK("nc_get_var_float",nc_get_var_float(ncid, varid, (float*)buffer));
+            _NC_CHECK("nc_get_var_float/get_nc_buffer",nc_get_var_float(ncid, varid, (float*)buffer));
             break;
 
         case NC_DOUBLE:
-            //fprintf(stderr," buffer of NC_DOUBLE \n");
             elem_size = sizeof(double);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            _NC_CHECK("nc_get_var_double",nc_get_var_double(ncid, varid, (double*)buffer));
+            _NC_CHECK("nc_get_var_double/get_nc_buffer",nc_get_var_double(ncid, varid, (double*)buffer));
             break;
 
         default:
@@ -236,17 +245,17 @@ void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, s
     }
 
     /* Print some information and sample values */
-    if(debug) {
-        printf("\nFile: %s\n", path);
-        printf("  Var name: %s\n", varname);
-        printf("  Type: %d\n", (int)nvtype);
-        printf("  Dimensions: %d\n", ndims);
+    if(muscalnc_nc_debug) {
+        fprintf(stderrncfp,"File: %s\n", path);
+        fprintf(stderrncfp,"  Var name: %s\n", varname);
+        fprintf(stderrncfp,"  Type: %d\n", (int)nvtype);
+        fprintf(stderrncfp,"  Dimensions: %d\n", ndims);
         for (int i = 0; i < ndims; ++i) {
             char dname[NC_MAX_NAME + 1];
-            _NC_CHECK("nc_inq_dimname",nc_inq_dimname(ncid, dimids[i], dname));
-            printf("     dim[%d] name=%s len=%zu\n", i, dname, dimlens[i]);
+            _NC_CHECK("nc_inq_dimname/get_nc_buffer",nc_inq_dimname(ncid, dimids[i], dname));
+            fprintf(stderrncfp,"     dim[%d] name=%s len=%zu\n", i, dname, dimlens[i]);
         }
-        printf("  Total elements: %zu\n", nnelems);
+        fprintf(stderrncfp,"  Total elements: %zu\n\n", nnelems);
     }
 
 cleanup: 
@@ -270,6 +279,7 @@ float *get_nc_float_buffer(int ncid, char *varname, const char *path, nc_type *v
     nc_type nvtype;
 
     varid=get_nc_varid(ncid,varname,path);
+    if(muscalnc_nc_debug) { fprintf(stderrncfp,"   Grab float buffer for %s\n",varname); }
     nnelems =get_nc_var(ncid, varid, &nvtype, &ndims, &dimids, &dimlens);
     // ndims should be 1 or 3
     if(ndims != e_dimlens) {
@@ -282,43 +292,43 @@ float *get_nc_float_buffer(int ncid, char *varname, const char *path, nc_type *v
     switch ( nvtype ) {
         case NC_BYTE:
         case NC_UBYTE:
-            if(debug) printf("\nBuffer of NC_BYTE or NC_UBYTE");
+            if(muscalnc_nc_debug) fprintf(stderrncfp,"Buffer of NC_BYTE or NC_UBYTE\n");
             break;
 
         case NC_CHAR:
-            if(debug) printf("\nBuffer of NC_CHAR");
+            if(muscalnc_nc_debug) fprintf(stderrncfp,"Buffer of NC_CHAR\n");
             break;
 
         case NC_SHORT:
-            if(debug) printf("\nBuffer of NC_SHORT");
+            if(muscalnc_nc_debug) fprintf(stderrncfp,"Buffer of NC_SHORT\n");
             break;
 
         case NC_USHORT:
-            if(debug) printf("\nBuffer of NC_USHORT");
+            if(muscalnc_nc_debug) fprintf(stderrncfp,"Buffer of NC_USHORT\n");
             break;
 
         case NC_INT:
-            if(debug) printf("\nBuffer of NC_INT");
+            if(muscalnc_nc_debug) fprintf(stderrncfp,"Buffer of NC_INT\n");
             break;
 
         case NC_UINT:
-            if(debug) printf("\nBuffer of NC_UINT");
+            if(muscalnc_nc_debug) fprintf(stderrncfp,"Buffer of NC_UINT\n");
             break;
 
         case NC_INT64:
-            if(debug) printf("\nBuffer of NC_INT64 => NC_FLOAT");
+            if(muscalnc_nc_debug) fprintf(stderrncfp,"Buffer of NC_INT64 => NC_FLOAT\n");
             break;
 
         case NC_UINT64:
-            if(debug) printf("\nBuffer of NC_UINT64");
+            if(muscalnc_nc_debug) fprintf(stderrncfp,"Buffer of NC_UINT64\n");
             break;
 
         case NC_FLOAT:
-            if(debug) printf("\nBuffer of NC_FLOAT");
+            if(muscalnc_nc_debug) fprintf(stderrncfp,"Buffer of NC_FLOAT\n");
             break;
 
         case NC_DOUBLE:
-            if(debug) printf("\nBuffer of NC_DOUBLE => NC_FLOAT");
+            if(muscalnc_nc_debug) fprintf(stderrncfp,"Buffer of NC_DOUBLE => NC_FLOAT\n");
             break;
 
         default:
@@ -329,20 +339,20 @@ float *get_nc_float_buffer(int ncid, char *varname, const char *path, nc_type *v
     elem_size = sizeof(float);
     buffer = malloc(nnelems * elem_size);
     if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-    _NC_CHECK("nc_get_var_float",nc_get_var_float(ncid, varid, (float*)buffer));
+    _NC_CHECK("nc_get_var_float/get_nc_float_buffer",nc_get_var_float(ncid, varid, (float*)buffer));
 
     /* Print some information and sample values */
-    if(debug) {
-        printf("\n  File: %s\n", path);
-        printf("  Var name: %s\n", varname);
-        printf("  Original Type: %d\n", (int)nvtype);
-        printf("  Dimensions: %d\n", ndims);
+    if(muscalnc_nc_debug) {
+        fprintf(stderrncfp,"File: %s\n", path);
+        fprintf(stderrncfp,"  Var name: %s\n", varname);
+        fprintf(stderrncfp,"  Original Type: %d\n", (int)nvtype);
+        fprintf(stderrncfp,"  Dimensions: %d\n", ndims);
         for (int i = 0; i < ndims; ++i) {
             char dname[NC_MAX_NAME + 1];
-            _NC_CHECK("nc_inq_dimname",nc_inq_dimname(ncid, dimids[i], dname));
-            printf("     dim[%d] name=%s len=%zu\n", i, dname, dimlens[i]);
+            _NC_CHECK("nc_inq_dimname/get_nc_float_buffer",nc_inq_dimname(ncid, dimids[i], dname));
+            fprintf(stderrncfp,"     dim[%d] name=%s len=%zu\n", i, dname, dimlens[i]);
         }
-        printf("  Total elements: %zu\n", nnelems);
+        fprintf(stderrncfp,"  Total elements: %zu\n\n", nnelems);
     }
 
 cleanup: 
@@ -356,14 +366,12 @@ cleanup:
 
 float get_nc_vara_float(int ncid, int varid, int dep_idx, int lat_idx, int lon_idx) {
 // depth, lat, lon
-  size_t start[] = {dep_idx, lat_idx, lon_idx};
-  size_t count[] = {1, 1, 1};
+    size_t start[] = {dep_idx, lat_idx, lon_idx};
+    size_t count[] = {1, 1, 1};
 
-  float val;
-  int status = nc_get_vara_float(ncid, varid, start, count, &val);
-  if (status != NC_NOERR) { fprintf(stderr, "netCDF error: %s\n", nc_strerror(status)); }
-
-return val;
+    float val;
+    _NC_CHECK("nc_get_vara_float/get_nc_vara_float", nc_get_vara_float(ncid, varid, start, count, &val));
+    return val;
 }
 
 
@@ -379,12 +387,7 @@ int cache_depth_col_float(int ncid, int varid,
     size_t start[3] = {0, lat_idx, lon_idx};
     size_t count[3] = {ndepth, 1, 1};
 
-    int status = nc_get_vara_float(ncid, varid, start, count, col);
-    if (status != NC_NOERR) {
-        fprintf(stderr, "netCDF error (cache_depth_col_float): %s\n",
-                nc_strerror(status));
-        return status;
-    }
+    _NC_CHECK("nc_get_vara_float/cache_depth_col_float", nc_get_vara_float(ncid, varid, start, count, col));
     return NC_NOERR;
 }
 
@@ -393,17 +396,14 @@ int cache_latlon_layer_float(int ncid, int varid,
                 size_t dep_idx, size_t ny, size_t nx,
                 float *layer /* size >= ny*nx */)
 {
- if(debug) {fprintf(stderr," layer, calling layer_float %ld %ld (%ld) \n", ny, nx, (ny * nx)); }
- if(debug) {fprintf(stderr," layer, using dep_idx %ld\n", dep_idx); }
+ if(muscalnc_nc_debug) {fprintf(stderrncfp," layer, calling layer_float %ld %ld (%ld) \n", ny, nx, (ny * nx)); }
+ if(muscalnc_nc_debug) {fprintf(stderrncfp," layer, using dep_idx %ld\n", dep_idx); }
 
     size_t start[] = {dep_idx, 0, 0};
     size_t count[] = {1, ny, nx};
-    int status = nc_get_vara_float(ncid, varid, start, count, layer);
 
-    if (status != NC_NOERR) {
-        fprintf(stderr, "netCDF error (cache_latlon_layer_float): %s\n", nc_strerror(status));
-        return status;
-    }
+    _NC_CHECK("nc_get_vara_float/cache_latlon_layer_float", nc_get_vara_float(ncid, varid, start, count, layer));
+
     return NC_NOERR;
 }
 

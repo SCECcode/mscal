@@ -9,6 +9,7 @@
 #include <netcdf.h>
 
 int open_nc(const char* path);
+void close_nc(int ncid);
 int get_nc_varid(int ncid, const char* varname, const char* path);
 int get_nc_var(int ncid, int varid, nc_type *vtype, int *ndims, int **dimids, size_t **dimlens);
 
