@@ -30,7 +30,6 @@ jobs:
       with:
          initiating-repo: 'muscalnc'
          target-model: 'muscalnc'
-         target-branch: 'testMei'
     - name: get-result
       run: more ${{ steps.build-ucvm.outputs.build-log }}
       shell: bash
@@ -83,7 +82,7 @@ jobs:
       uses: actions/checkout@v4
       with: 
         repository: 'SCECcode/UCVM'
-        ref: main
+        ref: testMei
         path: ucvm
     - id: build-ucvm
       name: build ucvm
