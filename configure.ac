@@ -23,7 +23,7 @@ AC_PROG_LN_S
 dnl --- begin: add libtool and --enable-shared handling ---
 # initialize libtool (provides LT_INIT and shared/static helpers)
 # If libtool is not available, autoreconf will tell you.
-LT_INIT
+LT_INIT([shared static])
 
 # standard --enable-shared/--disable-shared option
 AC_ARG_ENABLE([shared],

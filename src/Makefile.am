@@ -1,66 +1,52 @@
-# Autoconf/automake file
+# Define include headers to install in $(prefix)/include
+include_HEADERS = muscalnc.h
 
-objects = um_netcdf.o muscalnc_dataset.o muscalnc_util.o cJSON.o kdtree_util.o
+# Define executable binaries to install in $(prefix)/bin
+bin_PROGRAMS = muscalnc_query muscalnc_surface build_kdtree query_kdtree
 
-# General compiler/linker flags
-AM_CFLAGS = ${CFLAGS} ${CPPFLAGS} -I$(prefix)/include
-AM_LDFLAGS = ${LDFLAGS} -L$(prefix)/lib ${LIBS} -lm
+# Define shared/static libraries to install in $(prefix)/lib
+lib_LTLIBRARIES = libmuscalnc.la
 
+# ------------------------------------------------------------------------------
+# Library Definition
+# ------------------------------------------------------------------------------
 
-TARGETS = muscalnc_surface muscalnc_query libmuscalnc.a libmuscalnc.so build_kdtree query_kdtree
+# Sources for the shared/static library
+libmuscalnc_la_SOURCES = \
+	muscalnc.c \
+	muscalnc_dataset.c \
+	muscalnc_util.c \
+	um_netcdf.c \
+	cJSON.c \
+	kdtree_util.c
 
-all: $(TARGETS)
+# Include path and flags for compiling the library
+libmuscalnc_la_CPPFLAGS = -I$(top_srcdir) -I$(prefix)/include -DDYNAMIC_LIBRARY
 
-install:
-	mkdir -p ${prefix}
-	mkdir -p ${prefix}/lib
-	mkdir -p ${prefix}/include
-	mkdir -p ${prefix}/bin
-	cp libmuscalnc.so ${prefix}/lib
-	cp libmuscalnc.a ${prefix}/lib
-	cp muscalnc.h ${prefix}/include
-	cp muscalnc_query ${prefix}/bin
+# Linker flags and libraries for libmuscalnc
+libmuscalnc_la_LDFLAGS = -version-info 1:0:0 -L$(prefix)/lib
+libmuscalnc_la_LIBADD = -lm $(LIBS)
 
-clean:
-	rm -rf $(TARGETS)
-	rm -rf *.o
+# ------------------------------------------------------------------------------
+# Executables Definitions
+# ------------------------------------------------------------------------------
 
-libmuscalnc.a: muscalnc_static.o muscalnc_dataset.o muscalnc_util.o um_netcdf.o cJSON.o kdtree_util.o
-	$(AR) rcs $@ $^
+AM_CPPFLAGS = -I$(top_srcdir) -I$(prefix)/include
+AM_LDFLAGS = -L$(prefix)/lib
 
-libmuscalnc.so: muscalnc.o muscalnc_dataset.o muscalnc_util.o  um_netcdf.o cJSON.o kdtree_util.o
-	$(CC) -shared $(AM_FCFLAGS) -o libmuscalnc.so $^ $(AM_LDFLAGS)
+# muscalnc_query links against our Libtool library
+muscalnc_query_SOURCES = muscalnc_query.c
+muscalnc_query_LDADD = libmuscalnc.la -lm $(LIBS)
 
-muscalnc.o: muscalnc.c
-	$(CC) -fPIC -DDYNAMIC_LIBRARY -o $@ -c $^ $(AM_CFLAGS)
+# muscalnc_surface links against our Libtool library
+muscalnc_surface_SOURCES = muscalnc_surface.c
+muscalnc_surface_LDADD = libmuscalnc.la -lm $(LIBS)
 
-muscalnc_static.o: muscalnc.c
-	$(CC) -o $@ -c $^ $(AM_CFLAGS)
+# build_kdtree helper
+build_kdtree_SOURCES = build_kdtree.c kdtree_util.c
+build_kdtree_LDADD = -lm $(LIBS)
 
-$(objects): %.o: %.c
-	$(CC) -fPIC -DDYNAMIC_LIBRARY $(AM_CFLAGS) -o $@ -c $^
-
-muscalnc_query.o: muscalnc_query.c
-	$(CC) $(AM_CFLAGS) -o $@ -c $^
-
-muscalnc_query : muscalnc_query.o libmuscalnc.a
-	$(CC) -o $@ $^ $(AM_LDFLAGS)
-
-muscalnc_surface.o: muscalnc_surface.c
-	$(CC) $(AM_CFLAGS) -o $@ -c $^
-
-muscalnc_surface : muscalnc_surface.o libmuscalnc.a
-	$(CC) -o $@ $^ $(AM_LDFLAGS)
-
-build_kdtree.o: build_kdtree.c
-	$(CC) $(AM_CFLAGS) -o $@ -c $^
-
-build_kdtree: build_kdtree.o kdtree_util.o
-	$(CC) -o $@ $^ $(AM_LDFLAGS)
-
-query_kdtree.o: query_kdtree.c
-	$(CC) $(AM_CFLAGS) -o $@ -c $^
-
-query_kdtree: query_kdtree.o kdtree_util.o
-	$(CC) -o $@ $^ $(AM_LDFLAGS)
+# query_kdtree helper
+query_kdtree_SOURCES = query_kdtree.c kdtree_util.c
+query_kdtree_LDADD = -lm $(LIBS)
 

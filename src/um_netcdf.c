@@ -5,12 +5,25 @@
 
 #include "um_netcdf.h"
 
-int debug;
+int debug=0;
+
+int _NC_CHECK(char *fname, int e) {
+    int _rc = e;
+    int _failed = (_rc != NC_NOERR);
+    if(debug) {
+      fprintf(stderr,"NC_CHECK on %s and %d\n",fname,_rc);
+    }
+    if (_failed) { 
+        fprintf(stderr, "NetCDF Error (%d): %s\n", _rc, nc_strerror(_rc));
+        return EXIT_FAILURE;
+    }
+    return _rc;
+}
 
 /* Open file (read-only) */
 int open_nc(const char* path) {
     int ncid = -1;
-    NC_CHECK(nc_open(path, NC_NOWRITE, &ncid));
+    _NC_CHECK("nc_open", nc_open(path, NC_NOWRITE, &ncid));
     return ncid;
 }
  
@@ -32,7 +45,7 @@ int get_nc_varid(int ncid, const char* varname, const char *path) {
 int get_nc_var(int ncid, int varid, nc_type *vtype, int *ndims, int **dimids, size_t **dimlens) { 
     int nndims = 0;
     int natts = 0;
-    NC_CHECK(nc_inq_var(ncid, varid, NULL, vtype, &nndims, NULL, &natts));
+    _NC_CHECK("nc_inq_var",nc_inq_var(ncid, varid, NULL, vtype, &nndims, NULL, &natts));
     if (nndims <= 0) {
         fprintf(stderr, "Variable has no dimensions (scalar). Reading scalar...\n");
     }
@@ -45,9 +58,8 @@ int get_nc_var(int ncid, int varid, nc_type *vtype, int *ndims, int **dimids, si
     }
 
     if (nndims > 0) {
-        NC_CHECK(nc_inq_var(ncid, varid, NULL, NULL, NULL, ndimids, NULL));
+        _NC_CHECK("nc_inq_var",nc_inq_var(ncid, varid, NULL, NULL, NULL, ndimids, NULL));
     }
-//fprintf(stderr," ndimids is .. %d %d %d\n", ndimids[0], ndimids[1], ndimids[2]);
 
     size_t *ndimlens = (size_t *)malloc(sizeof(size_t) * (nndims > 0 ? nndims : 1));
     if (!*ndimlens) {
@@ -60,7 +72,7 @@ int get_nc_var(int ncid, int varid, nc_type *vtype, int *ndims, int **dimids, si
     size_t nelems = 1;
     for (int i = 0; i < nndims; ++i) {
         size_t len;
-        NC_CHECK(nc_inq_dimlen(ncid, ndimids[i], &len));
+        _NC_CHECK("nc_inq_dimlen",nc_inq_dimlen(ncid, ndimids[i], &len));
         ndimlens[i] = len;
         nelems *= len;
     }
@@ -141,7 +153,7 @@ void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, s
             elem_size = sizeof(unsigned char);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            NC_CHECK(nc_get_var_uchar(ncid, varid, (unsigned char*)buffer));
+            _NC_CHECK("nc_get_var_ucar",nc_get_var_uchar(ncid, varid, (unsigned char*)buffer));
             break;
 
         case NC_CHAR:
@@ -150,7 +162,7 @@ void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, s
             elem_size = sizeof(char);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            NC_CHECK(nc_get_var_text(ncid, varid, (char*)buffer));
+            _NC_CHECK("nc_get_var_text",nc_get_var_text(ncid, varid, (char*)buffer));
             break;
 
         case NC_SHORT:
@@ -158,7 +170,7 @@ void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, s
             elem_size = sizeof(short);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            NC_CHECK(nc_get_var_short(ncid, varid, (short*)buffer));
+            _NC_CHECK("nc_get_var_short",nc_get_var_short(ncid, varid, (short*)buffer));
             break;
 
         case NC_USHORT:
@@ -166,7 +178,7 @@ void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, s
             elem_size = sizeof(unsigned short);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            NC_CHECK(nc_get_var_ushort(ncid, varid, (unsigned short*)buffer));
+            _NC_CHECK("nc_get_var_ushort",nc_get_var_ushort(ncid, varid, (unsigned short*)buffer));
             break;
 
         case NC_INT:
@@ -174,7 +186,7 @@ void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, s
             elem_size = sizeof(int);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            NC_CHECK(nc_get_var_int(ncid, varid, (int*)buffer));
+            _NC_CHECK("nc_get_var_int",nc_get_var_int(ncid, varid, (int*)buffer));
             break;
 
         case NC_UINT:
@@ -182,7 +194,7 @@ void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, s
             elem_size = sizeof(unsigned int);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            NC_CHECK(nc_get_var_uint(ncid, varid, (unsigned int*)buffer));
+            _NC_CHECK("nc_get_var_uint",nc_get_var_uint(ncid, varid, (unsigned int*)buffer));
             break;
 
         case NC_INT64:
@@ -190,7 +202,7 @@ void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, s
             elem_size = sizeof(long long);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            NC_CHECK(nc_get_var_longlong(ncid, varid, (long long*)buffer));
+            _NC_CHECK("nc_get_var_longlong",nc_get_var_longlong(ncid, varid, (long long*)buffer));
             break;
 
         case NC_UINT64:
@@ -198,7 +210,7 @@ void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, s
             elem_size = sizeof(unsigned long long);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            NC_CHECK(nc_get_var_ulonglong(ncid, varid, (unsigned long long*)buffer));
+            _NC_CHECK("nc_get_var_ulonglong",nc_get_var_ulonglong(ncid, varid, (unsigned long long*)buffer));
             break;
 
         case NC_FLOAT:
@@ -207,7 +219,7 @@ void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, s
             buffer = malloc(nnelems * elem_size);
             //fprintf(stderr,"   needs %d \n",nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            NC_CHECK(nc_get_var_float(ncid, varid, (float*)buffer));
+            _NC_CHECK("nc_get_var_float",nc_get_var_float(ncid, varid, (float*)buffer));
             break;
 
         case NC_DOUBLE:
@@ -215,7 +227,7 @@ void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, s
             elem_size = sizeof(double);
             buffer = malloc(nnelems * elem_size);
             if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-            NC_CHECK(nc_get_var_double(ncid, varid, (double*)buffer));
+            _NC_CHECK("nc_get_var_double",nc_get_var_double(ncid, varid, (double*)buffer));
             break;
 
         default:
@@ -231,7 +243,7 @@ void *get_nc_buffer(int ncid, char *varname, const char *path, nc_type *vtype, s
         printf("  Dimensions: %d\n", ndims);
         for (int i = 0; i < ndims; ++i) {
             char dname[NC_MAX_NAME + 1];
-            NC_CHECK(nc_inq_dimname(ncid, dimids[i], dname));
+            _NC_CHECK("nc_inq_dimname",nc_inq_dimname(ncid, dimids[i], dname));
             printf("     dim[%d] name=%s len=%zu\n", i, dname, dimlens[i]);
         }
         printf("  Total elements: %zu\n", nnelems);
@@ -258,9 +270,7 @@ float *get_nc_float_buffer(int ncid, char *varname, const char *path, nc_type *v
     nc_type nvtype;
 
     varid=get_nc_varid(ncid,varname,path);
-//fprintf(stderr,"AAA varname %s, ncid %d, varid %d\n", varname, ncid, varid);
     nnelems =get_nc_var(ncid, varid, &nvtype, &ndims, &dimids, &dimlens);
-//fprintf(stderr,"AAAA  nnelems %ld\n", nnelems);
     // ndims should be 1 or 3
     if(ndims != e_dimlens) {
         fprintf(stderr," Fail to extract %s data\n",varname);
@@ -319,7 +329,7 @@ float *get_nc_float_buffer(int ncid, char *varname, const char *path, nc_type *v
     elem_size = sizeof(float);
     buffer = malloc(nnelems * elem_size);
     if (!buffer) { fprintf(stderr, "malloc failed\n"); goto cleanup; }
-    NC_CHECK(nc_get_var_float(ncid, varid, (float*)buffer));
+    _NC_CHECK("nc_get_var_float",nc_get_var_float(ncid, varid, (float*)buffer));
 
     /* Print some information and sample values */
     if(debug) {
@@ -329,7 +339,7 @@ float *get_nc_float_buffer(int ncid, char *varname, const char *path, nc_type *v
         printf("  Dimensions: %d\n", ndims);
         for (int i = 0; i < ndims; ++i) {
             char dname[NC_MAX_NAME + 1];
-            NC_CHECK(nc_inq_dimname(ncid, dimids[i], dname));
+            _NC_CHECK("nc_inq_dimname",nc_inq_dimname(ncid, dimids[i], dname));
             printf("     dim[%d] name=%s len=%zu\n", i, dname, dimlens[i]);
         }
         printf("  Total elements: %zu\n", nnelems);

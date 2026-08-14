@@ -8,15 +8,6 @@
 #include <math.h>
 #include <netcdf.h>
 
-/* Simple error-handling macro */
-#define NC_CHECK(e) do { \
-    int status = (e); \
-    if (status != NC_NOERR) { \
-        fprintf(stderr, "NetCDF Error (%d): %s\n", status, nc_strerror(status)); \
-        exit(EXIT_FAILURE); \
-    } \
-} while(0)
-
 int open_nc(const char* path);
 int get_nc_varid(int ncid, const char* varname, const char* path);
 int get_nc_var(int ncid, int varid, nc_type *vtype, int *ndims, int **dimids, size_t **dimlens);
