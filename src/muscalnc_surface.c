@@ -21,7 +21,7 @@
 #include "cJSON.h"
 #include "muscalnc.h"
 
-int muscalnc_debug=1;
+int muscalnc_debug=0;
 
 void extract_surface(float dep);
 

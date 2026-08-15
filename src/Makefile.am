@@ -50,3 +50,13 @@ build_kdtree_LDADD = -lm $(LIBS)
 query_kdtree_SOURCES = query_kdtree.c kdtree_util.c
 query_kdtree_LDADD = -lm $(LIBS)
 
+
+# ------------------------------------------------------------------------------
+# macOS .so compatibility symlink
+# ------------------------------------------------------------------------------
+install-exec-hook:
+	@if test "`uname -s`" = "Darwin"; then \
+		cd $(DESTDIR)$(libdir) && \
+		rm -f libmuscalnc.so && \
+		ln -s libmuscalnc.dylib libmuscalnc.so; \
+	fi

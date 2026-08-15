@@ -5,7 +5,7 @@
 
 #include "um_netcdf.h"
 
-int muscalnc_nc_debug=1;
+int muscalnc_nc_debug=0;
 FILE *stderrncfp=NULL;
 
 int _NC_CHECK(char *fname, int e) {
@@ -81,8 +81,8 @@ int get_nc_var(int ncid, int varid, nc_type *vtype, int *ndims, int **dimids, si
     }
 
     size_t *ndimlens = (size_t *)malloc(sizeof(size_t) * (nndims > 0 ? nndims : 1));
-    if (!*ndimlens) {
-        fprintf(stderr, "Out of memory allocating *dimlens\n");
+    if (!ndimlens) {
+        fprintf(stderr, "Out of memory allocating dimlens\n");
         free(ndimids);
         close_nc(ncid);
         return EXIT_FAILURE;
